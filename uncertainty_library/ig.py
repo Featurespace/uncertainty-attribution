@@ -29,7 +29,7 @@ def d_entropy_d_x(x, model, sample):
     return d_entr_d_x, d_ale_d_x
 
 
-def ig_entropy(fiducial, x, model, bins=500, sample=500):
+def ig_entropy(fiducial, x, model, bins=200, sample=500):
     """IG in pixel space"""
 
     # Create the path from fiducial to x - half points - trapezoidal
@@ -58,7 +58,7 @@ def ig_entropy(fiducial, x, model, bins=500, sample=500):
 
 # =============================================================================
 
-def ig_latent_curve(z_fid, z, x, decoder, model, bins=500, sample=500, jacobian_splits=1):
+def ig_latent_curve(z_fid, z, x, decoder, model, bins=200, sample=500, jacobian_splits=1):
     """IG with counterfactual fiducial and latent path"""
 
     # Create the paths, for trapezoidal integration

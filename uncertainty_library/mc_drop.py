@@ -34,7 +34,16 @@ def get_mc_predictions(model, dataset: tuple, samples=200):
     return mc_predictions, summary
 
 
-def get_entropy(x, model, samples=200):
-    preds = model.predict(tf.repeat(x[None, ...], samples, axis=0))
-    entropy = - np.sum(preds.mean(0) * np.log(preds.mean(0) + 1e-30))
-    return entropy
+def get_entropy(x, model, samples=200, bs=32):
+    # x assumed to be a batch of images
+    ds = tf.data.Dataset.from_tensor_slices(x).batch(bs)
+    entropies = []
+    for batch in ds:
+        B, W, H, C = batch.shape
+        x_expanded = tf.repeat(batch[:, None, ...], samples, axis=1)
+        x_expanded = tf.reshape(x_expanded, shape=(-1, W, H, C))
+        preds = model(x_expanded)
+        preds = tf.reshape(preds, shape=(B, samples, preds.shape[-1]))
+        preds_mean = preds.numpy().mean(1)
+        entropies.append(- np.sum(preds_mean * np.log(preds_mean + 1e-30), axis=-1))
+    return np.concatenate(entropies)

@@ -49,7 +49,7 @@ for idx in indices:
 
     entr_lime = get_importances_LIME(x, my_model)
 
-    entr_shap = get_importances_SHAP(x, my_model, x_train)
+    entr_shap = get_importances_SHAP(x, my_model, x_train.numpy())
 
     # Plots
     fig = plot_that_comparison(1-x, ig_entr, ig_entr_vanilla,

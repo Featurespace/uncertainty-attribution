@@ -64,10 +64,8 @@ def get_labels_CelebA(folder, category):
     category_idx = attributes_names.index(category)
     labels = []
     for file_name in file_list:
-        label = attributes[file_name][category_idx]
-        label_onehot = [0, 0]
-        label_onehot[label] = 1
-        labels.append(label_onehot)
+        label = attributes_dict[file_name][category_idx]
+        labels.append(label)
 
     return labels
 
@@ -101,6 +99,10 @@ def _preprocess_dataset(ds, augment=True, is_labelled=True):
         ds = ds.map(decorator(augmentation), num_parallel_calls=tf.data.AUTOTUNE)
     ds = ds.map(decorator(lambda image: image[:, 25: -25, 25: -25, :]))
     ds = ds.map(decorator(lambda image: tf.clip_by_value(image, 0.0, 255.0) / 255.0))
+    if is_labelled:
+        ds = ds.map(
+            lambda image, label: (image, tf.squeeze(tf.one_hot(tf.cast(label, tf.int32), 2)))
+        )
     ds = ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)
 
     return ds

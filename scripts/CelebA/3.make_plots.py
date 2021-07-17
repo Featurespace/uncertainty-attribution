@@ -11,10 +11,7 @@ from uncertainty_library.attribution_methods import (
     get_importances_LIME,
     get_importances_SHAP,
 )
-from uncertainty_library.plotting_functions import (
-    plot_that_comparison,
-    plot_that_pic
-)
+from uncertainty_library.plotting_functions import plot_that_comparison,
 
 
 def ds2numpy(ds, max_num_batches):
@@ -42,13 +39,16 @@ my_model = tf.keras.models.load_model('saved_models/classifier_smiling')
 # Get predictions across the test data
 mc_predictions, summary = get_mc_predictions(my_model, (x_valid, y_valid))
 summary_selected = summary.loc[summary.Label == summary.Pred]
+summary_selected = summary_selected[
+    (summary_selected.Entropy > 0.35) & (summary_selected.Entropy < 0.45)
+]
 
 
 # Choose image and produce importances
 # =============================================================================
 
 os.makedirs('plots_comparisons', exist_ok=True)
-for idx in summary_selected.sort_values(by="Epistemic").index[-100: -70]:
+for idx in summary_selected.sort_values(by="Epistemic").index[:50]:
     x = x_valid[idx]
     y = int(summary_selected.loc[idx].Label)
     label = idx2label[y]
@@ -61,20 +61,14 @@ for idx in summary_selected.sort_values(by="Epistemic").index[-100: -70]:
 
     entr_clue = get_importances_CLUE(x, my_model, encoder, decoder)
 
-    entr_lime = get_importances_LIME(x, my_model, num_perturb=5000, alpha=7e-4)
+    entr_lime = get_importances_LIME(x, my_model, num_perturb=5000, alpha=7e-4, bs=4)
 
     entr_shap = get_importances_SHAP(x, my_model, x_train, num_perturb=50000,
-                                     alpha=1e-4)
+                                     alpha=1e-4, bs=4)
 
     # Plots
     fig = plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue,
                                entr_lime, entr_shap, label=label, alpha=0.5)
     fig.savefig(f'plots_comparisons/{idx}.png',
-                bbox_inches='tight', pad_inches=0.1)
-    plt.close(fig)
-
-    # Plots comparing entropy, aleatoric and epistemic parts of uncertainty
-    fig = plot_that_pic(x, ig_entr, ig_ale, ig_epi, label=label, alpha=0.5)
-    fig.savefig(f'plots_comparisons/{idx}_ig.png',
                 bbox_inches='tight', pad_inches=0.1)
     plt.close(fig)

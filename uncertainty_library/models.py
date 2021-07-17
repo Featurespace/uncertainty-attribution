@@ -22,7 +22,7 @@ def build_keras_images(in_shape: tuple, dropout_rate: float, num_categories: int
     out = tf.keras.layers.Dropout(dropout_rate)(out, training=True)
     out = tf.keras.layers.Dense(num_categories, activation='softmax')(out)
 
-    model = tf.keras.Model(inputs=input, outputs=out)
+    model = tf.keras.Model(inputs=input_tensor, outputs=out)
     print(model.summary())
 
     return model
@@ -88,6 +88,7 @@ def vae_blocks_images(in_shape: tuple):
 
     out = tf.keras.layers.Conv2D(32, 3, 2, padding='same', activation='relu')(input_tensor)
     out = tf.keras.layers.Conv2D(64, 3, 2, padding='same', activation='relu')(out)
+    size = out.shape[1]
 
     flat = tf.keras.layers.Flatten()(out)
     dense = tf.keras.layers.Dense(128, activation='relu')(flat)
@@ -97,19 +98,18 @@ def vae_blocks_images(in_shape: tuple):
     # Sample a random latent vector from gaussian distribution
     eps = tf.random.normal(shape=tf.shape(mu))
     out = eps * tf.exp(log_sigma_2 * .5) + mu
-    encoder = tf.keras.Model(input, [mu, log_sigma_2, out])
+    encoder = tf.keras.Model(input_tensor, [mu, log_sigma_2, out])
     print(encoder.summary())
 
     # DECODER
     # =========================================================================
     input_tensor = tf.keras.layers.Input(shape=(32,))
 
-    size = out.shape[1]
     out = tf.keras.layers.Dense(size ** 2 * 64, activation="relu")(input_tensor)
     out = tf.keras.layers.Reshape((size, size, 64))(out)
     out = tf.keras.layers.Conv2DTranspose(64, 3, 2, padding="same", activation="relu")(out)
     out = tf.keras.layers.Conv2DTranspose(32, 3, 2, padding="same", activation="relu")(out)
-    out = tf.keras.layers.Conv2DTranspose(3, 3, 1, padding="same", activation="sigmoid")(out)
+    out = tf.keras.layers.Conv2DTranspose(1, 3, 1, padding="same", activation="sigmoid")(out)
 
     decoder = tf.keras.Model(input_tensor, out)
     print(decoder.summary())

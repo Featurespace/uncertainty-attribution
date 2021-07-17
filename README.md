@@ -2,7 +2,7 @@
 
 This is the official tensorflow implementation of the following manuscript: "Path Integrals for the Attribution of Model Uncertainties", Perez, I., Skalski, P., Barns-Graham, A., Wong, J., and Sutton, D.
 
-arXiv version: [link]()
+arXiv version: [link](https://arxiv.org/abs/2107.08756)
 
 **Contact:**  piotr [dot] skalski [at] featurespace [dot] co [dot] uk
 

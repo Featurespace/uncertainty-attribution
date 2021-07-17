@@ -39,7 +39,7 @@ indices = set(itertools.chain(
     summary_selected.sort_values(by="Aleatoric").index[-300: -250]
 ))
 
-os.makedirs('comparisons_fashionMNIST')
+os.makedirs('comparisons_fashionMNIST', exist_ok=True)
 for idx in indices:
     x = x_test[idx]
     y = int(summary_selected.loc[idx].Label)
@@ -54,7 +54,7 @@ for idx in indices:
 
     entr_lime = get_importances_LIME(x, my_model)
 
-    entr_shap = get_importances_SHAP(x, my_model, x_train, alpha=0.0005)
+    entr_shap = get_importances_SHAP(x, my_model, x_train.numpy(), alpha=0.0005)
 
     fig = plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue,
                                entr_lime, entr_shap, label=label,

@@ -9,7 +9,7 @@ from uncertainty_library.plotting_functions import plot_that_pic
 
 
 # Get the data
-(x_train, y_train), (x_test, y_test) = read_format_data('FashionMNIST')
+(x_train, y_train), (x_test, y_test) = read_format_data('MNIST')
 
 # Load the models
 encoder = tf.keras.models.load_model('saved_models/vae_MNIST/encoder')

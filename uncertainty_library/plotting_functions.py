@@ -6,6 +6,8 @@ def plot_that_pic(x, ig_entr, ig_ale, ig_epi, label=None, background='white', al
     fig, axes = plt.subplots(1, 4, figsize=(20, 5))
     fig.tight_layout(pad=0)
 
+    if len(x.shape) > 2 and (x.shape[2] < 3):
+        x = x[:, :, 0]
     if background == 'white':
         background_pic = np.ones_like(x)
     elif background == 'black':
@@ -80,6 +82,8 @@ def plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue, entr_lime, entr
     fig, axes = plt.subplots(1, 6, figsize=(30, 5))
     fig.tight_layout(pad=0)
 
+    if len(x.shape) > 2 and (x.shape[2] < 3):
+        x = x[:, :, 0]
     if background == 'white':
         background_pic = np.ones_like(x)
     elif background == 'black':
