@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tensorflow = "*"
+tqdm = "*"
+numpy = "*"
+pandas = "*"
+matplotlib = "*"
+tensorflow-probability = "*"
+scikit-image = "*"
+scikit-learn = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

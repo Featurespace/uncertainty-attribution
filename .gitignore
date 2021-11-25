@@ -9,6 +9,7 @@ data/
 .pylint.d/
 __pycache__
 .vscode
+# Pipfile
 
 intermediate_work
 uncertainty_library.egg-info
