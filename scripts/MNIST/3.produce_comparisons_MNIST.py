@@ -3,7 +3,7 @@ import itertools
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from uncertainty_library.mc_drop import get_mc_predictions
-from uncertainty_library.data import read_format_data
+from uncertainty_library.data import read_format_data, ds2numpy
 from uncertainty_library.attribution_methods import (
     get_importances,
     get_importances_vanilla,
@@ -15,7 +15,9 @@ from uncertainty_library.plotting_functions import plot_that_comparison
 
 
 # Get the data
-(x_train, y_train), (x_test, y_test) = read_format_data('MNIST')
+ds_train, ds_test = read_format_data('MNIST', bs=10)
+x_train, y_train = ds2numpy(ds_train, max_num_batches=200)
+x_test, y_test = ds2numpy(ds_test, max_num_batches=200)
 
 # Load the models
 encoder = tf.keras.models.load_model('saved_models/vae_MNIST/encoder')
@@ -49,7 +51,7 @@ for idx in indices:
 
     entr_lime = get_importances_LIME(x, my_model)
 
-    entr_shap = get_importances_SHAP(x, my_model, x_train.numpy())
+    entr_shap = get_importances_SHAP(x, my_model, x_train)
 
     # Plots
     fig = plot_that_comparison(1-x, ig_entr, ig_entr_vanilla,

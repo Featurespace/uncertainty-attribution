@@ -6,13 +6,15 @@ from uncertainty_library.mc_drop import get_mc_predictions
 from uncertainty_library.data import (
     read_format_data,
     fashionMNIST_idx2label as idx2label,
+    ds2numpy
 )
 from uncertainty_library.attribution_methods import get_importances
 from uncertainty_library.plotting_functions import plot_that_pic
 
 
 # Get the data
-(x_train, y_train), (x_test, y_test) = read_format_data('FashionMNIST')
+ds_train, ds_test = read_format_data('FashionMNIST', bs=10)
+x_test, y_test = ds2numpy(ds_test, max_num_batches=200)
 
 # Load the models
 encoder = tf.keras.models.load_model('saved_models/vae_fashionMNIST/encoder')

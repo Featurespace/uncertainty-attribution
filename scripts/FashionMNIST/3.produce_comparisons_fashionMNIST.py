@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from uncertainty_library.data import (
     read_format_data,
     fashionMNIST_idx2label as idx2label,
+    ds2numpy
 )
 from uncertainty_library.mc_drop import get_mc_predictions
 from uncertainty_library.attribution_methods import (
@@ -19,7 +20,9 @@ from uncertainty_library.plotting_functions import plot_that_comparison
 
 
 # Get the data
-(x_train, y_train), (x_test, y_test) = read_format_data('FashionMNIST')
+ds_train, ds_test = read_format_data('FashionMNIST', bs=10)
+x_train, y_train = ds2numpy(ds_train, max_num_batches=200)
+x_test, y_test = ds2numpy(ds_test, max_num_batches=200)
 
 # Load the models
 encoder = tf.keras.models.load_model('saved_models/vae_fashionMNIST/encoder')
@@ -52,9 +55,9 @@ for idx in indices:
 
     entr_clue = get_importances_CLUE(x, my_model, encoder, decoder)
 
-    entr_lime = get_importances_LIME(x, my_model)
+    entr_lime = get_importances_LIME(x, my_model, ratio=0.4)
 
-    entr_shap = get_importances_SHAP(x, my_model, x_train.numpy(), alpha=0.0005)
+    entr_shap = get_importances_SHAP(x, my_model, x_train)
 
     fig = plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue,
                                entr_lime, entr_shap, label=label,

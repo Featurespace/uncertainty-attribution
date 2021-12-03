@@ -1,5 +1,9 @@
 import numpy as np
+import os
 import matplotlib.pyplot as plt
+from tqdm import trange
+from uncertainty_library.metric import pic_vs_px_count
+from collections import defaultdict
 
 
 def plot_that_pic(x, ig_entr, ig_ale, ig_epi, label=None, background='white', alpha=0.15):
@@ -220,3 +224,29 @@ def plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue, entr_lime, entr
     axes[5].set_title('SHAP', fontsize=24)
 
     return fig
+
+
+def generate_pic_curves(attr_dir_name: str, output_folder: str, model, metric: str, blur: int):
+    bin_file_list = [file for file in os.listdir(attr_dir_name) if '.npz' in file]
+
+    pic_curves = defaultdict(list)
+
+    for i in trange(len(bin_file_list)):
+        attributions = dict(np.load(os.path.join(attr_dir_name, bin_file_list[i])))
+        img = attributions.pop('image')
+        for method, attr_map in attributions.items():
+            pic_curve, bin_vals, _ = pic_vs_px_count(img, attr_map, model, blur, metric)
+            pic_curves[method].append(pic_curve)
+
+    # Average over the images
+    averaged_pic_curves = {method: np.mean(vals, axis=0) for method, vals in pic_curves.items()}
+
+    # Make plots
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for method, avg_pic_curve in averaged_pic_curves.items():
+        ax.plot(bin_vals, avg_pic_curve, label=method)
+    ax.set_xlabel("% of pixels included", fontsize=14)
+    ax.set_ylabel(f"Avg {metric}", fontsize=14)
+    ax.legend(fontsize=14)
+
+    fig.savefig(os.path.join(output_folder, f"avg_{metric}_over_{len(bin_file_list)}_random_images_blur_{blur}.png"))

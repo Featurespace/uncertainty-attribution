@@ -7,7 +7,7 @@ from uncertainty_library.models import build_keras_hq_images
 # Train and save a model with uncertainty
 # =============================================================================
 
-ds_train, ds_valid = read_format_data_CelebA('img_align_celeba', category='Smiling')
+ds_train, ds_valid = read_format_data_CelebA('img_align_celeba', category='Smiling', uniform_prob=0.1)
 
 my_model = build_keras_hq_images(in_shape=(128, 128, 3))
 
@@ -24,5 +24,5 @@ my_model.compile(optimizer=opt, loss=cce, metrics=[tf.keras.metrics.CategoricalA
 fit = my_model.fit(ds_train, validation_data=ds_valid, epochs=epochs)
 
 # Save the model - the predictions are too large to upload
-os.makedirs('saved_models', exist_ok=True)
-my_model.save('saved_models/classifier_smiling')
+os.makedirs('models', exist_ok=True)
+my_model.save('models/classifier_smiling')

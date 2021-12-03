@@ -68,17 +68,20 @@ def get_importances_CLUE(x: tf.Tensor, model, encoder, decoder,
     return tf.reduce_sum(x - decoder(z_fid)[0], axis=2).numpy()
 
 
-def get_importances_LIME(x: tf.Tensor, model, mc_sample=100, num_perturb=100,
-                         alpha=0.001, bs=32):
+def get_importances_LIME(x: tf.Tensor, model, mc_sample=100, num_perturb=None,
+                         alpha=None, bs=32, kernel_size=1, max_dist=5, ratio=0.2):
     # Generate superpixels
     channels = x.shape[2]
     if channels == 1:
         x_rgb = skimage.color.gray2rgb(x[:, :, 0]).astype('double')
     else:
         x_rgb = x.astype('double')
-    superpixels = skimage.segmentation.quickshift(x_rgb, kernel_size=1,
-                                                  max_dist=5, ratio=0.2)
+    superpixels = skimage.segmentation.quickshift(x_rgb, kernel_size=kernel_size,
+                                                  max_dist=max_dist, ratio=ratio)
     num_superpixels = np.unique(superpixels).shape[0]
+
+    if num_perturb is None:
+        num_perturb = 10 * num_superpixels + 100
 
     # Generate perturbations
     perturbations = np.random.binomial(1, 0.8, size=(num_perturb,
@@ -101,7 +104,10 @@ def get_importances_LIME(x: tf.Tensor, model, mc_sample=100, num_perturb=100,
     w = np.exp(-w)
 
     # Run Lasso regression
-    lf = linear_model.Lasso(alpha=alpha)
+    if alpha is not None:
+        lf = linear_model.Lasso(alpha=alpha)
+    else:
+        lf = linear_model.LassoCV(cv=5)
     lf.fit(X=perturbations, y=predictions, sample_weight=w)
 
     # Get importances in original image shape
@@ -109,8 +115,10 @@ def get_importances_LIME(x: tf.Tensor, model, mc_sample=100, num_perturb=100,
 
 
 def get_importances_SHAP(x: tf.Tensor, model, x_train, mc_sample=100,
-                         num_perturb=5000, alpha=0.002, bs=32):
+                         num_perturb=None, alpha=None, bs=32):
     """Implementation of the kernelShap attribution method."""
+    if num_perturb is None:
+        num_perturb = 3 * x.shape[0] ** 2 + 2 ** 11
     # Generate perturbations
     perc = 0.05
     feat_c = x.shape[0]*x.shape[1]
@@ -132,7 +140,10 @@ def get_importances_SHAP(x: tf.Tensor, model, x_train, mc_sample=100,
     predictions = get_entropy(perturbations, model, mc_sample, bs=bs)
 
     # Run regression
-    lf = linear_model.Lasso(alpha=alpha)
+    if alpha is not None:
+        lf = linear_model.Lasso(alpha=alpha)
+    else:
+        lf = linear_model.LassoLarsIC(criterion='aic')
     lf.fit(X=mask.reshape(num_perturb, -1),
            y=predictions)
 

@@ -11,7 +11,8 @@ from uncertainty_library.models import (
 # Train and save a basic model with uncertainty
 # =============================================================================
 
-(x_train, y_train), (x_test, y_test) = read_format_data('MNIST')
+ds_train, ds_test = read_format_data('MNIST', horizontal_flip=False, augment=True,
+                                     noise_prob=0.5, noise_level=0.1, uniform_prob=0.1)
 my_model = build_keras_images(dropout_rate=0.5, in_shape=(28, 28, 1),
                               num_categories=10)
 
@@ -23,16 +24,17 @@ my_model.compile(optimizer='adam', loss=cce,
                  metrics=[tf.keras.metrics.CategoricalAccuracy()])
 
 # Train
-fit = my_model.fit(x_train, y_train, validation_data=(x_test, y_test),
-                   epochs=10, batch_size=32)
+fit = my_model.fit(ds_train, validation_data=ds_test, epochs=10)
 
 # Save the model - the predictions are too large to upload
-os.makedirs('saved_models', exist_ok=True)
-my_model.save('saved_models/model_MNIST')
+os.makedirs('models', exist_ok=True)
+my_model.save('models/model_MNIST')
 
 
-# Train and save a variational autoencoder
-# =============================================================================
+# # Train and save a variational autoencoder
+# # =============================================================================
+
+ds_train, ds_test = read_format_data('MNIST', labelled=False, horizontal_flip=False, augment=True)
 
 encoder, decoder = vae_blocks_images(in_shape=(28, 28, 1))
 print(encoder.summary())
@@ -43,8 +45,8 @@ vae_model = VAE(encoder, decoder)
 vae_model.compile(optimizer='adam')
 
 # Train
-fit = vae_model.fit(x_train, epochs=50, batch_size=32)
+fit = vae_model.fit(ds_train, validation_data=ds_test, epochs=50)
 
 # Save the encoder and decoder models
-encoder.save('saved_models/vae_MNIST/encoder')
-decoder.save('saved_models/vae_MNIST/decoder')
+encoder.save('models/vae_MNIST/encoder')
+decoder.save('models/vae_MNIST/decoder')

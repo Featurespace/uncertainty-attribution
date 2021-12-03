@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from uncertainty_library.mc_drop import get_mc_predictions
-from uncertainty_library.data import read_format_data_CelebA
+from uncertainty_library.data import read_format_data_CelebA, ds2numpy
 from uncertainty_library.attribution_methods import (
     get_importances,
     get_importances_vanilla,
@@ -11,17 +11,7 @@ from uncertainty_library.attribution_methods import (
     get_importances_LIME,
     get_importances_SHAP,
 )
-from uncertainty_library.plotting_functions import plot_that_comparison,
-
-
-def ds2numpy(ds, max_num_batches):
-    x, y = [], []
-    for batch in ds.take(max_num_batches):
-        x.append(batch[0].numpy())
-        y.append(batch[1].numpy())
-    x = np.concatenate(x, axis=0)
-    y = np.concatenate(y, axis=0)
-    return x, y
+from uncertainty_library.plotting_functions import plot_that_comparison
 
 
 train_ds, valid_ds = read_format_data_CelebA('img_align_celeba', category='Smiling')
@@ -61,10 +51,10 @@ for idx in summary_selected.sort_values(by="Epistemic").index[:50]:
 
     entr_clue = get_importances_CLUE(x, my_model, encoder, decoder)
 
-    entr_lime = get_importances_LIME(x, my_model, num_perturb=5000, alpha=7e-4, bs=4)
+    entr_lime = get_importances_LIME(x, my_model, bs=4, kernel_size=3,
+                                     max_dist=10, ratio=2.0)
 
-    entr_shap = get_importances_SHAP(x, my_model, x_train, num_perturb=50000,
-                                     alpha=1e-4, bs=4)
+    entr_shap = get_importances_SHAP(x, my_model, x_train, bs=4)
 
     # Plots
     fig = plot_that_comparison(x, ig_entr, ig_entr_vanilla, entr_clue,
