@@ -1,10 +1,12 @@
 # Uncertainty attributions
 
-This is the official tensorflow implementation of the following manuscript: "Path Integrals for the Attribution of Model Uncertainties", Perez, I., Skalski, P., Barns-Graham, A., Wong, J., and Sutton, D.
+This is the official tensorflow implementation of the following manuscript:
 
-arXiv version: [link](https://arxiv.org/abs/2107.08756)
+Perez, I., Skalski, P., Barns-Graham, A., Wong, J. and Sutton, D. (2022) _Attribution of Predictive Uncertainties in Classification Models_, 38th Conference on Uncertainty in Artificial Intelligence (UAI), Eindhoven, Netherlands, 2022.
 
-**Contact:**  piotr [dot] skalski [at] featurespace [dot] co [dot] uk
+OpenReview link available [here](https://openreview.net/pdf?id=S2VIEPLicec).
+
+**Contact:**  iker [dot] perez [at] featurespace [dot] co [dot] uk
 
 ## Running the code
 

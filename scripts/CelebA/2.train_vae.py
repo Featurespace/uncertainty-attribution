@@ -18,15 +18,16 @@ vae_model = VAE(encoder, decoder, do_perceptual_loss=True)
 
 # Compile the model
 epochs = 100
-scheduler = tf.keras.optimizers.schedules.ExponentialDecay(5e-4, len(ds_train),
-                                                           0.98, staircase=True)
+scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+    5e-4, len(ds_train), 0.98, staircase=True)
 opt = tf.keras.optimizers.Adam(learning_rate=scheduler)
 vae_model.compile(optimizer=opt)
 
 # Train
-fit = vae_model.fit(ds_train, validation_data=ds_valid, epochs=epochs, verbose=2)
+fit = vae_model.fit(
+    ds_train, validation_data=ds_valid, epochs=epochs, verbose=2)
 
 # Save the encoder and decoder models
-os.makedirs('saved_models', exist_ok=True)
-encoder.save('saved_models/dfc-vae-cnn/encoder')
-decoder.save('saved_models/dfc-vae-cnn/decoder')
+os.makedirs('models', exist_ok=True)
+encoder.save('models/dfc-vae-cnn/encoder')
+decoder.save('models/dfc-vae-cnn/decoder')

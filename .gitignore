@@ -1,5 +1,6 @@
 # Default ignored files
 /workspace.xml
+uncertainty-paper-code.code-workspace
 .idea/
 .spyproject/
 *.csv
@@ -11,6 +12,7 @@ __pycache__
 .vscode
 
 intermediate_work
+intermediate_results
 uncertainty_library.egg-info
 scripts/CelebA/saved_models
 img_align_celeba.zip
@@ -18,3 +20,8 @@ list_attr_celeba.txt
 img_align_celeba
 saved_models_backup
 saved_models
+models
+comparisons_*
+attr_binaries
+performance_results
+pics_discuss/

@@ -1,25 +1,39 @@
+""" Keras models used within experiments in this repository"""
+
 import tensorflow as tf
 from tensorflow.keras.applications.vgg19 import VGG19, preprocess_input
 
 
-# Basic Keras model with MC dropout uncertainty (i.e. dropout at test time)
+# Basic Keras CNN models with dropout
 # =============================================================================
 
-def build_keras_images(in_shape: tuple, dropout_rate: float, num_categories: int):
+def build_keras_images(
+        in_shape: tuple,
+        dropout_rate: float,
+        num_categories: int):
+    """Basic classification model of low resolution images.
+
+    Args:
+        in_shape (tuple): input shape
+        dropout_rate (float): dropout rate
+        num_categories (int): number of output categories
+    """
     input_tensor = tf.keras.layers.Input(shape=in_shape, name='input_layer')
 
-    out = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu')(input_tensor)
+    out = tf.keras.layers.Conv2D(
+        filters=32, kernel_size=(3, 3), activation='relu')(input_tensor)
     out = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(out)
-    out = tf.keras.layers.Dropout(dropout_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
 
-    out = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu')(out)
+    out = tf.keras.layers.Conv2D(
+        filters=64, kernel_size=(3, 3), activation='relu')(out)
     out = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(out)
-    out = tf.keras.layers.Dropout(dropout_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
 
     # Flatten and proceed with MLP and dropout
     out = tf.keras.layers.Flatten()(out)
     out = tf.keras.layers.Dense(128, activation='relu')(out)
-    out = tf.keras.layers.Dropout(dropout_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(dropout_rate)(out)
     out = tf.keras.layers.Dense(num_categories, activation='softmax')(out)
 
     model = tf.keras.Model(inputs=input_tensor, outputs=out)
@@ -28,48 +42,57 @@ def build_keras_images(in_shape: tuple, dropout_rate: float, num_categories: int
     return model
 
 
-def build_keras_hq_images(in_shape: tuple, conv_drop_rate: float = 0.2,
-                          cls_drop_rate: float = 0.4):
+def build_keras_hq_images(
+        in_shape: tuple,
+        conv_drop_rate: float = 0.2,
+        cls_drop_rate: float = 0.4):
+    """Classification model for higher resolution images.
+
+    Args:
+        in_shape (tuple): input shape
+        conv_drop_rate (float, optional): Conv dropout rate. Defaults to 0.2.
+        cls_drop_rate (float, optional): Cls dropout rate. Defaults to 0.4.
+    """
     input_tensor = tf.keras.layers.Input(shape=in_shape)
 
     out = tf.keras.layers.Conv2D(32, 3, 1, padding='same')(input_tensor)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Conv2D(64, 3, 1, padding='same')(out)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Conv2D(128, 3, 1, padding='same')(out)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Conv2D(128, 3, 1, padding='same')(out)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Conv2D(256, 3, 1, padding='same')(out)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Conv2D(256, 3, 1, padding='same')(out)
     out = tf.keras.layers.BatchNormalization()(out)
-    out = tf.keras.layers.Dropout(conv_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(conv_drop_rate)(out)
     out = tf.keras.layers.ReLU()(out)
     out = tf.keras.layers.MaxPool2D((2, 2))(out)
 
     out = tf.keras.layers.Flatten()(out)
-    out = tf.keras.layers.Dropout(cls_drop_rate)(out, training=True)
+    out = tf.keras.layers.Dropout(cls_drop_rate)(out)
     out = tf.keras.layers.Dense(2, activation='softmax')(out)
 
     model = tf.keras.Model(input_tensor, out)
@@ -78,16 +101,23 @@ def build_keras_hq_images(in_shape: tuple, conv_drop_rate: float = 0.2,
     return model
 
 
-# Definition of encoder and decoder blocks
+# Definition of encoder and decoder blocks for VAE
 # =============================================================================
 
 def vae_blocks_images(in_shape: tuple):
+    """Create encoder/decoder models for  experiments on low resolution images.
+
+    Args:
+        in_shape (tuple): input shape
+    """
     # ENCODER
     # =========================================================================
     input_tensor = tf.keras.layers.Input(shape=in_shape)
 
-    out = tf.keras.layers.Conv2D(32, 3, 2, padding='same', activation='relu')(input_tensor)
-    out = tf.keras.layers.Conv2D(64, 3, 2, padding='same', activation='relu')(out)
+    out = tf.keras.layers.Conv2D(
+        32, 3, 2, padding='same', activation='relu')(input_tensor)
+    out = tf.keras.layers.Conv2D(
+        64, 3, 2, padding='same', activation='relu')(out)
     size = out.shape[1]
 
     flat = tf.keras.layers.Flatten()(out)
@@ -105,11 +135,15 @@ def vae_blocks_images(in_shape: tuple):
     # =========================================================================
     input_tensor = tf.keras.layers.Input(shape=(32,))
 
-    out = tf.keras.layers.Dense(size ** 2 * 64, activation="relu")(input_tensor)
+    out = tf.keras.layers.Dense(
+        size ** 2 * 64, activation="relu")(input_tensor)
     out = tf.keras.layers.Reshape((size, size, 64))(out)
-    out = tf.keras.layers.Conv2DTranspose(64, 3, 2, padding="same", activation="relu")(out)
-    out = tf.keras.layers.Conv2DTranspose(32, 3, 2, padding="same", activation="relu")(out)
-    out = tf.keras.layers.Conv2DTranspose(1, 3, 1, padding="same", activation="sigmoid")(out)
+    out = tf.keras.layers.Conv2DTranspose(
+        64, 3, 2, padding="same", activation="relu")(out)
+    out = tf.keras.layers.Conv2DTranspose(
+        32, 3, 2, padding="same", activation="relu")(out)
+    out = tf.keras.layers.Conv2DTranspose(
+        1, 3, 1, padding="same", activation="sigmoid")(out)
 
     decoder = tf.keras.Model(input_tensor, out)
     print(decoder.summary())
@@ -118,11 +152,19 @@ def vae_blocks_images(in_shape: tuple):
 
 
 class UpsampleConvLayer(tf.Module):
+    """Definition of an upsampling convolutional layer
+
+    Args:
+        tf (_type_): _description_
+    """
     def __init__(self, out_channels, kernel_size, stride=1, upsample=2):
         super(UpsampleConvLayer, self).__init__()
         self.upsample = upsample
-        self.conv = tf.keras.layers.Conv2D(out_channels, kernel_size=kernel_size,
-                                           strides=stride, padding='same')
+        self.conv = tf.keras.layers.Conv2D(
+            out_channels,
+            kernel_size=kernel_size,
+            strides=stride,
+            padding='same')
 
     def __call__(self, x):
         _, W, H, C = x.shape[0], x.shape[1], x.shape[2], x.shape[3]
@@ -137,6 +179,11 @@ class UpsampleConvLayer(tf.Module):
 
 
 def vae_blocks_hq_images(in_shape: tuple):
+    """Create encoder/decoder models for experiments on high resolution images.
+
+    Args:
+        in_shape (tuple): input shape
+    """
     # ENCODER
     # =========================================================================
     input_ = tf.keras.layers.Input(shape=in_shape)
@@ -210,6 +257,7 @@ def vae_blocks_hq_images(in_shape: tuple):
 # =============================================================================
 
 class VAE(tf.keras.Model):
+    """Implementation of a Variational Autoencoder class"""
     def __init__(self, encoder, decoder, do_perceptual_loss=False, **kwargs):
         super(VAE, self).__init__(**kwargs)
 
@@ -219,15 +267,16 @@ class VAE(tf.keras.Model):
 
         # Define the loss trackers
         self.loss_tr = tf.keras.metrics.Mean(name="total_loss")
-        self.reconstruction_loss_tr = tf.keras.metrics.Mean(name="reconstruction_loss")
+        self.reconstruction_loss_tr = tf.keras.metrics.Mean(
+            name="reconstruction_loss")
         self.kl_loss_tr = tf.keras.metrics.Mean(name="kl_loss")
 
         if do_perceptual_loss:
             self.reconstruction_loss_fn = self.get_perceptual_loss()
         else:
-            self.reconstruction_loss_fn = self.get_corssentropy_pixel_loss()
+            self.reconstruction_loss_fn = self.get_crossentropy_pixel_loss()
 
-    def get_corssentropy_pixel_loss(self):
+    def get_crossentropy_pixel_loss(self):
         def loss_fn(image, decoded):
             return tf.reduce_mean(tf.reduce_sum(
                 tf.keras.losses.binary_crossentropy(image, decoded),
@@ -237,7 +286,8 @@ class VAE(tf.keras.Model):
 
     def get_perceptual_loss(self):
         # https://arxiv.org/pdf/1610.00291.pdf
-        vgg_base = VGG19(input_shape=(128, 128, 3), weights='imagenet', include_top=False)
+        vgg_base = VGG19(
+            input_shape=(128, 128, 3), weights='imagenet', include_top=False)
         loss_model = tf.keras.models.Model(
             inputs=vgg_base.input,
             outputs=[
@@ -275,10 +325,12 @@ class VAE(tf.keras.Model):
             reconstruction = self.decoder(z)
 
             # Loss on image reconstruction
-            reconstruction_loss = self.reconstruction_loss_fn(data, reconstruction)
+            reconstruction_loss = self.reconstruction_loss_fn(
+                data, reconstruction)
 
             # Loss on KL generative regularization term
-            kl_loss = -0.5 * (1 + log_sigma_2 - tf.square(mu) - tf.exp(log_sigma_2))
+            kl_loss = \
+                -0.5 * (1 + log_sigma_2 - tf.square(mu) - tf.exp(log_sigma_2))
             kl_loss = tf.reduce_mean(tf.reduce_sum(kl_loss, axis=1))
 
             # Add the total loss
@@ -308,7 +360,8 @@ class VAE(tf.keras.Model):
         reconstruction_loss = self.reconstruction_loss_fn(data, reconstruction)
 
         # Loss on KL generative regularization term
-        kl_loss = -0.5 * (1 + log_sigma_2 - tf.square(mu) - tf.exp(log_sigma_2))
+        kl_loss = \
+            -0.5 * (1 + log_sigma_2 - tf.square(mu) - tf.exp(log_sigma_2))
         kl_loss = tf.reduce_mean(tf.reduce_sum(kl_loss, axis=1))
 
         # Add the total loss
